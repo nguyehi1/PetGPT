@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetGPT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to PetGPT</h1>
+        
+        <div class="chat-container">
+            <div id="chat-messages" aria-live="polite" aria-relevant="additions" role="log"></div>
+            
+            <div class="input-container">
+                <input 
+                    type="text" 
+                    id="question-input" 
+                    placeholder="Message PetGPT..." 
+                    autocomplete="off" 
+                    aria-label="Type your message here"
+                >
+                <button onclick="askQuestion()" aria-label="Send message">Ask</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function askQuestion() {
+            const questionInput = document.getElementById('question-input');
+            const chatMessages = document.getElementById('chat-messages');
+            const question = questionInput.value.trim();
+
+            if (!question) {
+                console.log('No question entered');
+                return;
+            }
+
+            // Display user's question
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.innerHTML = `<strong>You:</strong> ${question}`;
+            chatMessages.appendChild(userMessage);
+
+            // Display loading indicator for the bot's response
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot-message';
+            loadingDiv.textContent = 'Thinking...';
+            chatMessages.appendChild(loadingDiv);
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Something went wrong');
+                }
+
+                const data = await response.json();
+
+                // Remove loading indicator and display bot response
+                loadingDiv.remove();
+                const botMessage = document.createElement('div');
+                botMessage.className = 'message bot-message';
+                botMessage.innerHTML = `<strong>PetGPT:</strong> ${data.answer || 'Sorry, I could not generate a response.'}`;
+                chatMessages.appendChild(botMessage);
+
+            } catch (error) {
+                console.error('Error:', error);
+                loadingDiv.textContent = 'Sorry, something went wrong. Please try again.';
+                loadingDiv.style.color = 'red';
+            }
+
+            // Clear input field and scroll chat to bottom
+            questionInput.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Enable Enter key to send message
+        document.getElementById('question-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                askQuestion();
+            }
+        });
+    </script>
+</body>
+</html>
