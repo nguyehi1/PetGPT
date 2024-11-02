@@ -18,6 +18,7 @@ h1 {
     text-align: center;
     color: #8128d5;
     font-weight: bold;
+    margin-bottom: 20px;
 }
 
 /* Chat Container */
@@ -26,14 +27,14 @@ h1 {
     border-radius: 10px;
     padding: 20px;
     background-color: #1f1f21;
-    overflow-y: auto;
     max-height: 500px;
     margin-bottom: 20px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 #chat-messages {
-    height: 400px;
+    max-height: 400px;
     overflow-y: auto;
     margin-bottom: 20px;
     padding: 10px;
@@ -44,11 +45,11 @@ h1 {
     margin: 10px 0;
     padding: 12px 15px;
     border-radius: 8px;
-    display: flex;
-    align-items: center;
     max-width: 75%;
     font-size: 15px;
     line-height: 1.4;
+    display: flex;
+    align-items: center;
 }
 
 /* User Message */
@@ -56,9 +57,9 @@ h1 {
     background-color: #343434;
     color: #f1f1f1;
     align-self: flex-end;
-    text-align: left;
     margin-left: auto;
     border: 1px solid #555;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* Bot Message */
@@ -66,9 +67,8 @@ h1 {
     background-color: #292929;
     color: #d1d1d1;
     align-self: flex-start;
-    text-align: left;
     border: 1px solid #4e4d52;
-    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 /* Error Message */
@@ -83,6 +83,7 @@ h1 {
 .input-container {
     display: flex;
     gap: 10px;
+    padding: 10px 0;
 }
 
 input[type="text"] {
@@ -93,6 +94,12 @@ input[type="text"] {
     font-size: 16px;
     background-color: #2c2c2c;
     color: #f1f1f1;
+    transition: border 0.3s ease;
+}
+
+input[type="text"]:focus {
+    border-color: #8128d5;
+    outline: none;
 }
 
 /* Button Styling */
@@ -104,7 +111,7 @@ button {
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
@@ -123,4 +130,43 @@ button:hover {
 
 #chat-messages::-webkit-scrollbar-thumb:hover {
     background: #666;
+}
+
+/* Display responses */
+.response {
+    background-color: #292929;
+    color: #d1d1d1;
+    border: 1px solid #4e4d52;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    line-height: 1.6;
+    margin-top: 20px;
+}
+
+.section {
+    margin-bottom: 15px;
+    padding: 5px 0;
+}
+
+.section strong {
+    color: #8128d5;
+    display: block;
+    font-size: 1.1em;
+    margin-bottom: 8px;
+}
+
+.section p, .section ul, .section ol {
+    margin-left: 15px;
+    color: #cfcfcf;
+    line-height: 1.6;
+}
+
+ul, ol {
+    padding-left: 20px;
+    list-style-position: inside;
+}
+
+ul li, ol li {
+    margin-bottom: 6px;
 }

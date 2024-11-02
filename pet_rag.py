@@ -62,7 +62,12 @@ def ask_petgpt():
     if not question:
         return jsonify({"error": "No question provided"}), 400
     
-    answer = query_llama_claude(question)
+    # Create prompt template 
+    prompt = structured_response_template(question)
+
+    # pass the formatted prompt_template to querry_llama_claude
+    answer = query_llama_claude(prompt)
+
     return jsonify({
         "question": question,
         "answer": answer,
