@@ -6,6 +6,7 @@
     <title>PetGPT</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
     <div class="container">
         <h1>Welcome to PetGPT</h1>
@@ -40,13 +41,13 @@
             // Display user's question
             const userMessage = document.createElement('div');
             userMessage.className = 'message user-message';
-            userMessage.innerHTML = `<strong>You:</strong> ${question}`;
+            userMessage.innerHTML = `<strong></strong> ${question}`;
             chatMessages.appendChild(userMessage);
 
             // Display loading indicator for the bot's response
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'message bot-message';
-            loadingDiv.textContent = 'Thinking...';
+            loadingDiv.textContent = 'Typing...';
             chatMessages.appendChild(loadingDiv);
 
             try {
@@ -66,7 +67,7 @@
                 loadingDiv.remove();
                 const botMessage = document.createElement('div');
                 botMessage.className = 'message bot-message';
-                botMessage.innerHTML = `<strong>PetGPT:</strong> ${data.answer || 'Sorry, I could not generate a response.'}`;
+                botMessage.innerHTML = `<strong>PetGPT: </strong> ${data.answer || 'Sorry, I could not generate a response.'}`;
                 chatMessages.appendChild(botMessage);
 
             } catch (error) {
