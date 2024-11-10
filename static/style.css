@@ -24,7 +24,7 @@ body, html {
     /* background-color: #1f1f21; */
     width: 90vw;
     max-width: 800px;
-    height: 50vh;
+    height: 80vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;

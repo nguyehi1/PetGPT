@@ -17,6 +17,24 @@ from langchain.chains import RetrievalQA
 from langchain.schema import Document
 from langchain_ollama import OllamaLLM
 from prompt_templates import structured_response_template
+from dotenv import load_dotenv
+from langchain.callbacks.tracers import LangChainTracer
+from langsmith.run_helpers import traceable
+from langchain.smith import RunEvalConfig, run_on_dataset
+
+# Load env variables
+load_dotenv()
+
+# Updated LangSmith configuration
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGCHAIN_PROJECT"] = "petgpt"
+os.environ["USER_AGENT"] = "PetGPT Bot/1.0"
+
+# Initialize LangSmith tracer
+tracer = LangChainTracer(
+    project_name = "petgpt",
+)
 
 app = Flask(__name__)
 
@@ -33,6 +51,8 @@ PET_CARE_URLS = [
     "https://www.akc.org/"
 ]
 
+@traceable(project_name="petgpt")
+
 def query_llama_claude(prompt):
     """Run the ollama CLI to get a response from the llama-claude model."""
     try:
@@ -44,24 +64,24 @@ def query_llama_claude(prompt):
             check=True
         )
         return result.stdout.strip()
+
     except subprocess.CalledProcessError as e:
         logger.error(f"Error querying LlamaClaude: {e}")
         return "Model query failed."
 
 @app.route('/')
-
 def home():
     return render_template('index.html')
 
 @app.route('/ask', methods=['POST'])
-
+@traceable(project_name="petgpt")
 def ask_petgpt():
     data = request.get_json()
     question = data.get('question')
     
     if not question:
         return jsonify({"error": "No question provided"}), 400
-    
+        
     # Create prompt template 
     prompt = structured_response_template(question)
 
@@ -78,6 +98,12 @@ def clean_text(text):
     """Clean text by removing extra whitespace and unwanted characters."""
     return " ".join(text.split()) if text else ""
 
+@traceable(project_name="petgpt")
+def clean_text(text):
+    """Clean text by removing extra whitespace and unwanted characters."""
+    return " ".join(text.split()) if text else ""
+
+@traceable(project_name="petgpt")
 def scrape_website(url):
     """Scrape content from a single website, with error handling and respectful timing."""
     time.sleep(2)  # Avoid overwhelming the server
@@ -85,16 +111,19 @@ def scrape_website(url):
         response = requests.get(url, headers=HEADERS, timeout=10)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
-        
+            
         for element in soup(["script", "style", "nav", "footer", "header"]):
             element.decompose()
-        
+            
         main_content = soup.find(['main', 'article']) or soup.body
-        return clean_text(main_content.get_text()) if main_content else None
+        content = clean_text(main_content.get_text()) if main_content else None
+        return content
+        
     except requests.RequestException as e:
         logger.error(f"Error scraping {url}: {e}")
         return None
 
+@traceable(project_name="petgpt")
 def load_pet_data():
     """Load and clean data from multiple pet care websites."""
     documents = []
@@ -113,11 +142,13 @@ def load_pet_data():
         return None
     return documents
 
+@traceable(project_name="petgpt")
 def split_documents(documents):
     """Split documents into smaller chunks for processing."""
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     return splitter.split_documents(documents)
 
+@traceable(project_name="petgpt")
 def create_vector_store(splits):
     """Create and persist vector store from document chunks."""
     try:
@@ -128,6 +159,7 @@ def create_vector_store(splits):
         logger.error(f"Error creating vector store: {e}")
         return None
 
+@traceable(project_name="petgpt")
 def setup_rag():
     """Set up the RAG pipeline with document loading, splitting, and vector store creation."""
     try:
@@ -135,25 +167,37 @@ def setup_rag():
         documents = load_pet_data()
         if not documents:
             raise ValueError("Failed to load documents.")
-        
+            
         splits = split_documents(documents)
         vectorstore = create_vector_store(splits)
         if not vectorstore:
             raise ValueError("Vector store creation failed.")
-        
-        qa_chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=vectorstore.as_retriever())
+            
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=llm, 
+            chain_type="stuff", 
+            retriever=vectorstore.as_retriever(),
+            callbacks=[tracer]
+            )
+
         logger.info("RAG setup complete!")
         return qa_chain
+        
     except Exception as e:
         logger.error(f"Error setting up RAG: {e}")
         return None
 
+@traceable(project_name="petgpt")
 def answer_pet_question(qa_chain, question):
     """Generate answer using the RAG pipeline."""
     try:
         logger.info(f"Processing question: {question}")
-        answer = qa_chain.invoke({"query": question})
+        answer = qa_chain.invoke(
+            {"query": question},
+            callbacks=[tracer]
+        )        
         return answer
+    
     except Exception as e:
         logger.error(f"Error answering question: {e}")
         return f"Error: {e}"
@@ -175,4 +219,16 @@ def main():
         print("Answer:", answer_pet_question(qa_chain, question))
 
 if __name__ == '__main__':
+    # Verify LangSmith environment variables
+    required_vars = [
+        "LANGCHAIN_TRACING_V2",
+        "LANGCHAIN_API_KEY",
+        "LANGCHAIN_PROJECT",
+        "LANGCHAIN_ENDPOINT"
+    ]
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing_vars:
+        logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+        sys.exit(1)
     app.run(debug=True)

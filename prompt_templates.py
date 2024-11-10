@@ -1,7 +1,6 @@
 def structured_response_template(question, retrieved_info=""):
     return f"""
     You are a precise assistant that always maintains clear formatting and structure in responses. 
-    Creates a structured response with a brief answer, detailed information, and actionable items.
 
 QUESTION: "{question}"
 
