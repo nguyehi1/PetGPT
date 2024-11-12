@@ -1,0 +1,7 @@
+env/
+*.dylib
+*.so
+__pycache__/
+*.pyc
+pet_knowledge_base/
+.env
